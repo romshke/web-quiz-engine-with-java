@@ -1,0 +1,20 @@
+# course config files
+*.yaml
+
+# gradle
+.gradle/
+build
+
+# proxyai
+.proxyai
+
+# idea config
+.idea
+
+# old stages
+/Web Quiz Engine with Java/*
+!/Web Quiz Engine with Java/task/
+/Web Quiz Engine with Java/task/*
+!/Web Quiz Engine with Java/task/src
+!/Web Quiz Engine with Java/task/test
+!/Web Quiz Engine with Java/task/build.gradle
