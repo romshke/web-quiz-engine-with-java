@@ -1,8 +1,8 @@
 package engine.controller;
 
-import engine.dto.FeedbackDto;
-import engine.dto.QuizDto;
+import engine.dto.QuizRequest;
 import engine.service.QuizService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,13 +14,23 @@ public class QuizController {
         this.quizService = quizService;
     }
 
-    @GetMapping(path = "/api/quiz")
-    public QuizDto showQuiz() {
-        return quizService.getQuiz();
+    @PostMapping(path = "/api/quizzes")
+    public ResponseEntity<?> addQuiz(@RequestBody QuizRequest quizRequest) {
+        return ResponseEntity.ok(quizService.saveQuiz(quizRequest));
     }
 
-    @PostMapping(path = "/api/quiz")
-    public FeedbackDto saveQuiz(@RequestParam int answer) {
-        return quizService.checkAnswer(answer);
+    @GetMapping(path = "/api/quizzes/{id}")
+    public ResponseEntity<?> getQuiz(@PathVariable int id) {
+        return ResponseEntity.ok(quizService.getQuiz(id));
+    }
+
+    @GetMapping(path = "/api/quizzes")
+    public ResponseEntity<?> getAllQuizzes() {
+        return ResponseEntity.ok(quizService.getAllQuizzes());
+    }
+
+    @PostMapping(path = "/api/quizzes/{id}/solve")
+    public ResponseEntity<?> solveQuiz(@PathVariable int id, @RequestParam(name = "answer") int index) {
+        return ResponseEntity.ok(quizService.solveQuiz(id, index));
     }
 }

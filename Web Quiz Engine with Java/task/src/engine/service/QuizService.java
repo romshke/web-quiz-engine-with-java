@@ -1,30 +1,85 @@
 package engine.service;
 
-import engine.dto.FeedbackDto;
-import engine.dto.QuizDto;
+import engine.dto.QuizRequest;
+import engine.dto.QuizResponse;
+import engine.dto.SolutionResponse;
+import engine.model.Quiz;
+import engine.repository.QuizRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class QuizService {
 
-    public QuizDto getQuiz() {
-        String title = "The Java Logo",
-                text = "What is depicted on the Java logo?";
-        List<String> options = List.of("Robot", "Tea leaf", "Cup of coffee", "Bug");
+    private final QuizRepository quizRepository;
+    private final AtomicInteger idCounter;
 
-        return new QuizDto(title, text, options);
+    public QuizService(QuizRepository quizRepository) {
+        this.quizRepository = quizRepository;
+        this.idCounter = new AtomicInteger(1);
     }
 
-    public FeedbackDto checkAnswer(int answer) {
-        String feedbackCorrectAnswer = "Congratulations, you're right!",
-                feedbackWrongAnswer = "Wrong answer! Please, try again.";
+    public QuizResponse saveQuiz(QuizRequest quizRequest) {
+        Quiz quiz = new Quiz(
+                idCounter.getAndIncrement(),
+                quizRequest.title(),
+                quizRequest.text(),
+                quizRequest.options(),
+                quizRequest.answer()
+        );
 
-        if (answer == 2) {
-            return new FeedbackDto(true, feedbackCorrectAnswer);
+        quizRepository.save(quiz);
+
+        return convertToQuizResponse(quiz);
+    }
+
+    public QuizResponse getQuiz(int id) {
+        return quizRepository.findById(id)
+                .map(this::convertToQuizResponse)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        String.format("Quiz with id %d not found", id))
+                );
+
+    }
+
+    public List<QuizResponse> getAllQuizzes() {
+        List<Quiz> quizzes = quizRepository.findAll();
+
+        return quizzes.stream()
+                .map(this::convertToQuizResponse)
+                .toList();
+    }
+
+    public SolutionResponse solveQuiz(int id, int answer) {
+        Quiz quiz = quizRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        String.format("Quiz with id %d not found", id))
+                );
+
+        if (quiz.getAnswer() == answer) {
+            return correctSolution;
         } else {
-            return new FeedbackDto(false, feedbackWrongAnswer);
+            return incorrectSolution;
         }
     }
+
+    private QuizResponse convertToQuizResponse(Quiz quiz) {
+        return new QuizResponse(
+                quiz.getId(),
+                quiz.getTitle(),
+                quiz.getText(),
+                quiz.getOptions()
+        );
+    }
+
+    private final SolutionResponse correctSolution =
+            new SolutionResponse(true, "Congratulations, you're right!");
+    private final SolutionResponse incorrectSolution =
+            new SolutionResponse(false, "Wrong answer! Please, try again.");
 }

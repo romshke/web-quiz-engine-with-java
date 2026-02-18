@@ -2,7 +2,8 @@ package engine.dto;
 
 import java.util.List;
 
-public record QuizDto(
+public record QuizResponse(
+        int id,
         String title,
         String text,
         List<String> options

@@ -1,6 +1,6 @@
 package engine.dto;
 
-public record FeedbackDto(
+public record SolutionResponse(
         boolean success,
         String feedback
 ) {}
